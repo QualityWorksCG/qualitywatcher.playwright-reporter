@@ -30,16 +30,16 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "qualitywatcher.playwright-reporter",
+  "name": "@qualitywatcher/playwright-reporter",
   "author": "Nyran Moodie",
-  "module": "dist/qualitywatcher.playwright-reporter.esm.js",
+  "module": "dist/@qualitywatcher/playwright-reporter.esm.js",
   "size-limit": [
     {
-      "path": "dist/qualitywatcher.playwright-reporter.cjs.production.min.js",
+      "path": "dist/@qualitywatcher/playwright-reporter.cjs.production.min.js",
       "limit": "10 KB"
     },
     {
-      "path": "dist/qualitywatcher.playwright-reporter.esm.js",
+      "path": "dist/@qualitywatcher/playwright-reporter.esm.js",
       "limit": "10 KB"
     }
   ],
