@@ -5,14 +5,12 @@ Publish Playwright test run on QualityWatcher
 ## Install
 
 ```sh
-npm i -D playwright-zephyr
+npm i @qualitywatcher/playwright-reporter
 ```
 
 ## Usage
 
 Add reporter to your `playwright.config.ts` configuration file
-
-With `user` and `password` options:
 
 ```typescript
 // playwright.config.ts
@@ -21,7 +19,7 @@ import { PlaywrightTestConfig } from '@playwright/test';
 const config: PlaywrightTestConfig = {
   reporter: [
     [
-      'qw-playwright-reporter',
+      '@qualitywatcher/playwright-reporter',
       {
         apiKey: 'Enter api key',
         projectId: 'Enter project id',
