@@ -1,36 +1,65 @@
-import { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import {
-  QualityWatcherPayload,
-  QualityWatcherResult,
-} from './qualitywatcher.interface';
+  Reporter,
+  TestCase,
+  TestResult,
+} from "@playwright/test/reporter";
+import { QualityWatcherPayload, QualityWatcherReportOptions, QualityWatcherResult } from "./qualitywatcher.interface";
 import { QualityWatcherService } from './qualitywatcher.service';
-const REGEX_SUITE_AND_TEST_ID = /\bS(\d+)C(\d+)\b/g;
-class QualityWatcherReporter implements Reporter {
-  private qualityWatcherService!: QualityWatcherService;
-  private results: QualityWatcherResult[] = [];
-  private options: QualityWatcherPayload;
-  constructor(options: QualityWatcherPayload) {
+import { getSuiteAndCaseIds, validateOptions, stripAnsi } from "./util";
+
+
+class QualityWatcherReport implements Reporter {
+  private qualitywatcherService!: QualityWatcherService;
+  private readonly options: QualityWatcherReportOptions & QualityWatcherPayload;
+  private readonly results: QualityWatcherResult[] = [];
+
+  constructor(options: QualityWatcherReportOptions & QualityWatcherPayload) {
     this.options = options;
   }
-
   onBegin() {
-    this.qualityWatcherService = new QualityWatcherService(this.options);
+    validateOptions(this.options);
+    this.qualitywatcherService = new QualityWatcherService(this.options);
   }
 
-  onTestEnd(test: TestCase, result: TestResult) {
+  onTestEnd(test: TestCase & { id: string }, result: TestResult) {
+
+    if (this.options.excludeSkipped && result.status === 'skipped') {
+      return;
+    }
+
     const { suite_id, test_id } = getSuiteAndCaseIds(test.title);
-    this.results.push({
-      suite_id: suite_id,
-      test_id: test_id,
-      comment: result.status,
-      status: result.status,
+    const resultObject: QualityWatcherResult = {
+      id: test.id,
+      comment: result.error?.message
+        ? `${stripAnsi(result.error?.message)} \n ${stripAnsi(result.error?.stack || '')}`
+        : `${test.title} \n > ${test.location.file.split('/').pop()}:${test.location.line}:${test.location.column}`,
+      status: result.status === "timedOut" ? "failed" : result.status,
       time: result.duration,
-      title: test.title,
-    });
+      suite_id: suite_id || undefined,
+      test_id: test_id || undefined,
+      case:
+        (suite_id || test_id && this.options?.includeCaseWithoutId)
+          ? undefined
+          : {
+            suiteTitle: test.parent.title,
+            testCaseTitle: test.title,
+            steps: "",
+          },
+    };
+    // To prevent duplicates from retries
+    const found = this.results.find((element) => element.id === test.id);
+
+    if (found) {
+      found.status = resultObject.status;
+      found.comment = resultObject.comment
+    } else {
+      this.results.push(resultObject);
+    }
   }
+
   async onEnd() {
     if (this.results.length > 0) {
-      await this.qualityWatcherService.createRun(this.results);
+      await this.qualitywatcherService.createRun(this.results, this.options.complete || false);
     } else {
       console.log(
         `There are no tests to post to QualityWatcher. Please, check your tests.`
@@ -50,17 +79,5 @@ class QualityWatcherReporter implements Reporter {
     );
   }
 }
-function getSuiteAndCaseIds(title: string) {
-  let suiteAndCaseIds;
-  let suiteId;
-  let caseId;
-  while ((suiteAndCaseIds = REGEX_SUITE_AND_TEST_ID.exec(title)) != null) {
-    suiteId = suiteAndCaseIds[1];
-    caseId = suiteAndCaseIds[2];
-  }
-  return {
-    suite_id: Number(suiteId),
-    test_id: Number(caseId),
-  };
-}
-export default QualityWatcherReporter;
+
+export default QualityWatcherReport;

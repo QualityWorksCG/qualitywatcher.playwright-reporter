@@ -6,12 +6,17 @@ export enum Status {
 }
 
 export interface QualityWatcherResult {
-  suite_id: number;
-  test_id: number;
+  suite_id: number | undefined;
+  test_id: number | undefined;
   comment: string;
   status: string;
   time: number;
-  title: string;
+  case?: {
+    suiteTitle: string;
+    testCaseTitle: string;
+    steps: string;
+  } | undefined;
+  id: string;
 }
 
 export interface QualityWatcherPayload {
@@ -27,4 +32,14 @@ export interface QualityWatcherOptions {
   url: string;
   password: string;
   projectId: number;
+}
+
+export interface QualityWatcherReportOptions {
+  projectId: number;
+  testRunName: string;
+  description: string;
+  includeAllCases: boolean;
+  complete: boolean;
+  includeCaseWithoutId?: boolean;
+  excludeSkipped?: boolean;
 }
