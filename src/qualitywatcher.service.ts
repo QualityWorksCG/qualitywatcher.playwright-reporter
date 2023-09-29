@@ -6,11 +6,7 @@ import {
 } from './qualitywatcher.interface';
 
 export class QualityWatcherService {
-  private readonly apiKey: string;
-  private readonly projectId: number;
-  private readonly testRunName: string;
-  private readonly description: string;
-  private readonly includeAllCases: boolean;
+  private readonly options!: QualityWatcherPayload;
   private readonly axios: Axios;
 
   constructor(options: QualityWatcherPayload) {
@@ -32,38 +28,36 @@ export class QualityWatcherService {
         '[description] is missed. Please, provide it in the config'
       );
     }
-    if (!options.includeAllCases) {
+    if ("includeAllCases" in options && typeof options.includeAllCases !== "boolean") {
       throw new Error(
         '[includeAllCases] is missing. Please, provide it in the config'
       );
     }
 
-    this.apiKey = options.apiKey;
-    this.projectId = options.projectId;
-    this.testRunName = options.testRunName;
-    this.description = options.description;
-    this.includeAllCases = options.includeAllCases;
+    this.options = options;
+
+
 
     this.axios = axios.create({
-      baseURL: 'https://api.qualitywatcher.com/prod/nimble/v1/test-runner',
+      baseURL: 'https://api.qualitywatcher.com/dev/nimble/v1/test-runner',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.options.apiKey}`,
       },
       ...options,
     });
   }
 
-  async createRun(items: QualityWatcherResult[]): Promise<string> {
+  async createRun(results: QualityWatcherResult[]): Promise<string> {
     const data = {
-      projectId: this.projectId,
-      testRunName: this.testRunName,
-      description: this.description,
-      includeAllCases: this.includeAllCases,
-      suites: items
-        .map(item => item.suite_id)
-        .filter((value, index, self) => self.indexOf(value) === index),
-      results: items,
+      projectId: this.options.projectId,
+      testRunName: this.options.testRunName,
+      description: this.options.description,
+      "include_all_cases": this.options.includeAllCases,
+      suites: Array.from(new Set(
+        results.map((result) => result.suite_id).filter(Boolean)
+      )),
+      results,
     };
     try {
       const response = await this.axios.post(
