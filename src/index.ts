@@ -59,7 +59,7 @@ class QualityWatcherReport implements Reporter {
 
   async onEnd() {
     if (this.results.length > 0) {
-      await this.qualitywatcherService.createRun(this.results);
+      await this.qualitywatcherService.createRun(this.results, this.options.complete || false);
     } else {
       console.log(
         `There are no tests to post to QualityWatcher. Please, check your tests.`

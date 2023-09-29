@@ -27,7 +27,10 @@ const config: PlaywrightTestConfig = {
           'en-US'
         )} - automated run`,
         description: `triggered by automated run`,
-        includeAllCases: "True or False",
+        includeAllCases: true, // true/false
+        complete: true, // optional - mark test run as completed to lock results
+        includeCaseWithoutId: true, // optional - store results without mapping suite and case IDs
+        excludeSkipped: false, // optional - whether or not to track skipped results
       },
     ],
   ],

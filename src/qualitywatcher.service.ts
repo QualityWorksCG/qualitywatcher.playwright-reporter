@@ -48,11 +48,12 @@ export class QualityWatcherService {
     });
   }
 
-  async createRun(results: QualityWatcherResult[]): Promise<string> {
+  async createRun(results: QualityWatcherResult[], complete: boolean): Promise<string> {
     const data = {
       projectId: this.options.projectId,
       testRunName: this.options.testRunName,
       description: this.options.description,
+      complete,
       "include_all_cases": this.options.includeAllCases,
       suites: Array.from(new Set(
         results.map((result) => result.suite_id).filter(Boolean)
