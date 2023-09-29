@@ -39,7 +39,7 @@ export class QualityWatcherService {
 
 
     this.axios = axios.create({
-      baseURL: 'https://api.qualitywatcher.com/dev/nimble/v1/test-runner',
+      baseURL: 'https://api.qualitywatcher.com/prod/nimble/v1/test-runner',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.options.apiKey}`,
