@@ -28,15 +28,16 @@ export class QualityWatcherService {
         '[description] is missed. Please, provide it in the config'
       );
     }
-    if ("includeAllCases" in options && typeof options.includeAllCases !== "boolean") {
+    if (
+      'includeAllCases' in options &&
+      typeof options.includeAllCases !== 'boolean'
+    ) {
       throw new Error(
         '[includeAllCases] is missing. Please, provide it in the config'
       );
     }
 
     this.options = options;
-
-
 
     this.axios = axios.create({
       baseURL: 'https://api.qualitywatcher.com/prod/nimble/v1/test-runner',
@@ -48,16 +49,19 @@ export class QualityWatcherService {
     });
   }
 
-  async createRun(results: QualityWatcherResult[], complete: boolean): Promise<string> {
+  async createRun(
+    results: QualityWatcherResult[],
+    complete: boolean
+  ): Promise<string> {
     const data = {
       projectId: this.options.projectId,
       testRunName: this.options.testRunName,
       description: this.options.description,
       complete,
-      "include_all_cases": this.options.includeAllCases,
-      suites: Array.from(new Set(
-        results.map((result) => result.suite_id).filter(Boolean)
-      )),
+      include_all_cases: this.options.includeAllCases,
+      suites: Array.from(
+        new Set(results.map(result => result.suite_id).filter(Boolean))
+      ),
       results,
     };
     try {

@@ -11,11 +11,13 @@ export interface QualityWatcherResult {
   comment: string;
   status: string;
   time: number;
-  case?: {
-    suiteTitle: string;
-    testCaseTitle: string;
-    steps: string;
-  } | undefined;
+  case?:
+    | {
+        suiteTitle: string;
+        testCaseTitle: string;
+        steps: string;
+      }
+    | undefined;
   id: string;
 }
 

@@ -1,13 +1,15 @@
-import stringify from "fast-safe-stringify";
-import { QualityWatcherReportOptions } from "./qualitywatcher.interface";
+import stringify from 'fast-safe-stringify';
+import { QualityWatcherReportOptions } from './qualitywatcher.interface';
 
 const REGEX_SUITE_AND_TEST_ID = /\bS(\d+)C(\d+)\b/g;
-const ansiRegex = new RegExp('[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))', 'g');
+const ansiRegex = new RegExp(
+  '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))',
+  'g'
+);
 
 export const logger = (message: Object | string) => {
-  let messageOut =
-    message instanceof Object ? stringify(message) : message;
-  console.log(`  ${messageOut}`);
+  let messageOut = message instanceof Object ? stringify(message) : message;
+  console.log(`${messageOut}`);
 };
 
 export const msToTime = (ms: number) => {
@@ -49,36 +51,38 @@ export const getSuiteAndCaseIds = (title: string) => {
     suite_id: Number(suiteId),
     test_id: Number(caseId),
   };
-}
+};
 
-export const validateOptions = (reporterOptions: QualityWatcherReportOptions) => {
+export const validateOptions = (
+  reporterOptions: QualityWatcherReportOptions
+) => {
   const missingOptions = [];
   if (!reporterOptions) {
-    logger("reporterOptions is required in cypress.json");
-    throw new Error("reporterOptions is required in cypress.json");
+    logger('reporterOptions is required in cypress.json');
+    throw new Error('reporterOptions is required in cypress.json');
   }
 
   if (!reporterOptions?.projectId) {
-    missingOptions.push("projectId");
+    missingOptions.push('projectId');
   }
 
   if (!reporterOptions?.testRunName) {
-    missingOptions.push("testRunName");
+    missingOptions.push('testRunName');
   }
 
   if (!reporterOptions?.description) {
-    missingOptions.push("description");
+    missingOptions.push('description');
   }
 
   if (missingOptions?.length > 0) {
     const errorMessage = `Missing property/properties on reporterOptions in playwright.config.ts: ${missingOptions.join(
-      ", "
+      ', '
     )}`;
     logger(errorMessage);
     throw new Error(errorMessage);
   }
-}
+};
 
 export const stripAnsi = (str: string): string => {
   return str.replace(ansiRegex, '');
-}
+};

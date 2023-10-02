@@ -1,12 +1,11 @@
+import { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import {
-  Reporter,
-  TestCase,
-  TestResult,
-} from "@playwright/test/reporter";
-import { QualityWatcherPayload, QualityWatcherReportOptions, QualityWatcherResult } from "./qualitywatcher.interface";
+  QualityWatcherPayload,
+  QualityWatcherReportOptions,
+  QualityWatcherResult,
+} from './qualitywatcher.interface';
 import { QualityWatcherService } from './qualitywatcher.service';
-import { getSuiteAndCaseIds, validateOptions, stripAnsi } from "./util";
-
+import { getSuiteAndCaseIds, validateOptions, stripAnsi } from './util';
 
 class QualityWatcherReport implements Reporter {
   private qualitywatcherService!: QualityWatcherService;
@@ -22,7 +21,6 @@ class QualityWatcherReport implements Reporter {
   }
 
   onTestEnd(test: TestCase & { id: string }, result: TestResult) {
-
     if (this.options.excludeSkipped && result.status === 'skipped') {
       return;
     }
@@ -31,27 +29,31 @@ class QualityWatcherReport implements Reporter {
     const resultObject: QualityWatcherResult = {
       id: test.id,
       comment: result.error?.message
-        ? `${stripAnsi(result.error?.message)} \n ${stripAnsi(result.error?.stack || '')}`
-        : `${test.title} \n > ${test.location.file.split('/').pop()}:${test.location.line}:${test.location.column}`,
-      status: result.status === "timedOut" ? "failed" : result.status,
+        ? `${stripAnsi(result.error?.message)} \n ${stripAnsi(
+            result.error?.stack || ''
+          )}`
+        : `${test.title} \n > ${test.location.file.split('/').pop()}:${
+            test.location.line
+          }:${test.location.column}`,
+      status: result.status === 'timedOut' ? 'failed' : result.status,
       time: result.duration,
       suite_id: suite_id || undefined,
       test_id: test_id || undefined,
       case:
-        (suite_id || test_id && this.options?.includeCaseWithoutId)
+        suite_id || (test_id && this.options?.includeCaseWithoutId)
           ? undefined
           : {
-            suiteTitle: test.parent.title,
-            testCaseTitle: test.title,
-            steps: "",
-          },
+              suiteTitle: test.parent.title,
+              testCaseTitle: test.title,
+              steps: '',
+            },
     };
     // To prevent duplicates from retries
-    const found = this.results.find((element) => element.id === test.id);
+    const found = this.results.find(element => element.id === test.id);
 
     if (found) {
       found.status = resultObject.status;
-      found.comment = resultObject.comment
+      found.comment = resultObject.comment;
     } else {
       this.results.push(resultObject);
     }
@@ -59,7 +61,10 @@ class QualityWatcherReport implements Reporter {
 
   async onEnd() {
     if (this.results.length > 0) {
-      await this.qualitywatcherService.createRun(this.results, this.options.complete || false);
+      await this.qualitywatcherService.createRun(
+        this.results,
+        this.options.complete || false
+      );
     } else {
       console.log(
         `There are no tests to post to QualityWatcher. Please, check your tests.`
