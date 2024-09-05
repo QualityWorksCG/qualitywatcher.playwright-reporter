@@ -1,5 +1,7 @@
 import stringify from 'fast-safe-stringify';
 import { QualityWatcherReportOptions } from './qualitywatcher.interface';
+import fs from 'fs';
+import path from 'path';
 
 const REGEX_SUITE_AND_TEST_ID = /\bS(\d+)C(\d+)\b/g;
 const ansiRegex = new RegExp(
@@ -85,4 +87,39 @@ export const validateOptions = (
 
 export const stripAnsi = (str: string): string => {
   return str.replace(ansiRegex, '');
+};
+
+export const findScreenshotsInDirectory = (directory: string): string[] => {
+  if (!directory) return [];
+
+  const screenshots: string[] = [];
+  const files = fs.readdirSync(directory);
+
+  for (const file of files) {
+    const filePath = path.join(directory, file);
+    const stat = fs.statSync(filePath);
+
+    if (stat.isDirectory()) {
+      screenshots.push(...findScreenshotsInDirectory(filePath));
+    } else if (file.endsWith('.png')) {
+      screenshots.push(filePath);
+    }
+  }
+
+  return screenshots;
+};
+
+export const getMimeType = (filePath: string): string => {
+  const extension = path.extname(filePath).toLowerCase();
+  switch (extension) {
+    case '.png':
+      return 'image/png';
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg';
+    case '.gif':
+      return 'image/gif';
+    default:
+      return 'application/octet-stream';
+  }
 };

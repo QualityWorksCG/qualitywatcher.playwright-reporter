@@ -12,21 +12,23 @@ export interface QualityWatcherResult {
   status: string;
   time: number;
   case?:
-    | {
-        suiteTitle: string;
-        testCaseTitle: string;
-        steps: string;
-      }
-    | undefined;
+  | {
+    suiteTitle: string;
+    testCaseTitle: string;
+    steps: string;
+  }
+  | undefined;
   id: string;
+  attachments?: Array<{ name: string; path: string; contentType: string }> | string[];
 }
 
 export interface QualityWatcherPayload {
-  apiKey: string;
   projectId: number;
   testRunName: string;
   description: string;
-  includeAllCases: boolean;
+  include_all_cases: boolean;
+  complete?: boolean;
+  shareableReport?: boolean;
   results: QualityWatcherResult[];
 }
 
@@ -41,7 +43,13 @@ export interface QualityWatcherReportOptions {
   testRunName: string;
   description: string;
   includeAllCases: boolean;
-  complete: boolean;
+  complete?: boolean;
   includeCaseWithoutId?: boolean;
-  excludeSkipped?: boolean;
+  report?: boolean;
+  ignoreSkipped?: boolean;
+  generateShareableLink?: boolean;
+  parentSuiteTitle?: string;
+  screenshotFolder?: string;
+  uploadScreenshot?: boolean;
+  onEnd?: (runUrl: string, shareUrl: string) => Promise<void> | void;
 }
