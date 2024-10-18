@@ -56,7 +56,6 @@
     "axios": "^0.27.2",
     "fast-safe-stringify": "^2.1.1",
     "i": "^0.3.7",
-    "npm": "^8.13.2",
     "picocolors": "^1.0.0"
   }
 }
