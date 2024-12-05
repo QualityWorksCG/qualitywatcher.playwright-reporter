@@ -7,6 +7,7 @@ import { QualityWatcherService } from './qualitywatcher';
 import { getSuiteAndCaseIds, validateOptions, stripAnsi } from './util';
 import fs from 'fs';
 import path from 'path';
+import crypto from "crypto"
 
 class QualityWatcherReporter implements Reporter {
   private qualitywatcherService!: QualityWatcherService;
@@ -35,11 +36,10 @@ class QualityWatcherReporter implements Reporter {
     }
 
     const { suite_id, test_id } = getSuiteAndCaseIds(test.title);
+    
     const resultObject: QualityWatcherResult = {
-      id: test.id,
-      comment: result.error?.message
-        ? `${stripAnsi(result.error?.message)} \n ${stripAnsi(result.error?.stack || '')}`
-        : `${test.title} \n > ${test.location?.file}:${test.location?.line}:${test.location?.column}`,
+      id: crypto.randomUUID(),
+      comment: this.formatComment(test, result),
       status: result.status === 'timedOut' ? 'failed' : result.status,
       time: result.duration,
       suite_id: suite_id || undefined,
@@ -55,7 +55,7 @@ class QualityWatcherReporter implements Reporter {
       attachments: this.getAttachments(result.attachments),
     };
 
-    const found = this.results.find(element => element.id === test.id);
+    const found = this.results.find(element => element.id === resultObject.id);
 
     if (found) {
       found.status = resultObject.status;
@@ -66,8 +66,51 @@ class QualityWatcherReporter implements Reporter {
     }
   }
 
+  private formatComment(test: TestCase, result: TestResult): string {
+    const location = test.location ? 
+      `${test.location.file}:${test.location.line}:${test.location.column}` : 
+      'Location not available';
+
+    const stepsSection = result.steps.map(step => {
+      const status = step.error ? '❌' : '✅';
+      return `${status} ${step.category}: ${step.title}`;
+    }).join('\n');
+
+    if (result.error) {
+      return `<pre>
+Steps:
+${stepsSection}
+
+Test:     ${test.title}
+Location: ${location}
+Status:   Failed
+Duration: ${result.duration}ms
+
+Error: ${stripAnsi(result?.error?.message || JSON.stringify(result?.errors.join('\n')))}
+
+Stack Trace:
+${stripAnsi(result.error.stack || '')}
+</pre>`;
+    }
+
+    return `<pre>
+Steps:
+${stepsSection}
+
+Test:     ${test.title}
+Location: ${location}
+Status:   ${result.status}
+Duration: ${result.duration}ms
+
+</pre>`;
+  }
+
   private getSteps(steps: TestStep[]): string {
-    return steps.map(step => `${step.category}: ${step.title}`).join('\n');
+    const stepsText = steps.map(step => 
+      `${step.category}: ${step.title}`
+    ).join('\n');
+
+    return `<pre>${stepsText}</pre>`;
   }
 
   private getAttachments(attachments: { name: string, path?: string, body?: Buffer, contentType: string }[]): { name: string, path: string, contentType: string }[] {

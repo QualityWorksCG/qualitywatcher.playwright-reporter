@@ -6,3 +6,4 @@ dist
 /playwright-report/
 /playwright/.cache/
 /test-project/
+script.js

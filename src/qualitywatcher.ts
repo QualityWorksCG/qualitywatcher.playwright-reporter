@@ -43,6 +43,11 @@ export class QualityWatcherService {
   async createRun(results: QualityWatcherResult[]): Promise<{ link: string, shareableReportLink: string }> {
     if (this.options.uploadScreenshot) {
       results = await this.processAttachments(results);
+    } else {
+      results = results.map(result => ({
+        ...result,
+        attachments: []
+      }));
     }
 
     const data: QualityWatcherPayload = {
@@ -76,24 +81,26 @@ export class QualityWatcherService {
   }
 
   private async processAttachments(results: QualityWatcherResult[]): Promise<QualityWatcherResult[]> {
-    for (const result of results) {
+    return await Promise.all(results.map(async (result) => {
       if (result.attachments && result.attachments.length > 0) {
         const attachmentUrls = await Promise.all(
           (result.attachments as Array<{ name: string; path: string; contentType: string }>).map(
             attachment => this.uploadAttachment(result, attachment)
           )
         );
-        result.attachments = attachmentUrls.filter(Boolean) as string[];
+        
+        // Replace the attachment objects with the URLs
+        result.attachments = attachmentUrls.filter(Boolean) as string[]; // This will remove null values
       }
-    }
-
-    return results;
+      return result;
+    }));
   }
 
   private async uploadAttachment(result: QualityWatcherResult, attachment: { name: string, path: string, contentType: string }): Promise<string | null> {
     try {
       const attachmentId = result.suite_id && result.test_id ? `${result.suite_id}-${result.test_id}` : '';
-      const uploadName = `attachment-${attachmentId}-${Date.now()}-${attachment.name}`;
+      const fileName = attachment.name.includes('.') ? attachment.name : `${attachment.name}.png`;
+      const uploadName = `attachment-${attachmentId}-${Date.now()}-${fileName}`;
 
       const signedUrlResponse = await this.axios.post(this.signedUrl, {
         fileName: uploadName,
@@ -103,15 +110,29 @@ export class QualityWatcherService {
       const { signedUrl } = signedUrlResponse.data;
 
       if (signedUrl) {
-        const file = await fs.promises.readFile(attachment.path);
-        await axios.put(signedUrl, file, {
-          headers: { 'Content-Type': attachment.contentType },
+        const fileBuffer = fs.readFileSync(attachment.path);
+
+        const uploadResponse = await axios.put(signedUrl, fileBuffer, {
+          headers: {
+            'Content-Type': attachment.contentType,
+            'Content-Length': fileBuffer.length,
+          },
+          maxBodyLength: Infinity,
+          maxContentLength: Infinity,
         });
 
-        return signedUrl.split('?')[0];
+        if (uploadResponse.status === 200) {
+          const cleanUrl = signedUrl.split('?')[0];
+          console.log(`Successfully uploaded attachment: ${cleanUrl}`);
+          return cleanUrl;
+        }
       }
     } catch (error) {
-      console.error(`Error uploading attachment: ${error}`);
+      console.error('Error uploading attachment:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Response data:', error.response?.data);
+        console.error('Response status:', error.response?.status);
+      }
     }
 
     return null;

@@ -19,7 +19,7 @@ export interface QualityWatcherResult {
   }
   | undefined;
   id: string;
-  attachments?: Array<{ name: string; path: string; contentType: string }> | string[];
+  attachments?: Array<{ name: string; path: string; contentType: string }> | string[] | [];
 }
 
 export interface QualityWatcherPayload {
