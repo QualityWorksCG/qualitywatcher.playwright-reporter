@@ -37,6 +37,11 @@ const config: PlaywrightTestConfig = {
       generateShareableLink: true,
       parentSuiteTitle: 'Smoke suite',
       uploadScreenshot: true,
+      onEnd: async (testRunLink: string, shareableLink: string) => {
+        // Example: Send links to Slack, email etc
+        console.log('Test Run Link:', testRunLink);
+        console.log('Shareable Link:', shareableLink);
+     },
     }],
   ],
 };
@@ -73,6 +78,7 @@ export QUALITYWATCHER_API_KEY=your_api_key_here
 | generateShareableLink | No | If true, generates a shareable link for the report |
 | parentSuiteTitle | No | The suite where test cases without IDs will be added |
 | uploadScreenshot | No | If true, uploads screenshots with the report |
+| onEnd | No | Callback function that receives the test run link and shareable link after results are posted |
 
 ## Test Case Mapping
 
