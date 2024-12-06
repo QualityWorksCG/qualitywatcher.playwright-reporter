@@ -1,5 +1,5 @@
 import stringify from 'fast-safe-stringify';
-import { QualityWatcherReportOptions } from './qualitywatcher.interface';
+import { QualityWatcherReportOptions, QualityWatcherResult } from './qualitywatcher.interface';
 import fs from 'fs';
 import path from 'path';
 
@@ -123,3 +123,14 @@ export const getMimeType = (filePath: string): string => {
       return 'application/octet-stream';
   }
 };
+
+export function getSuiteIds(results: QualityWatcherResult[]): number[] {
+  // Extract unique, non-undefined suite IDs
+  const uniqueSuiteIds = [...new Set(
+    results
+      .map(result => result.suite_id)
+      .filter((id): id is number => id !== undefined)
+  )];
+  
+  return uniqueSuiteIds;
+}

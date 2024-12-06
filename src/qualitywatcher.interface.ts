@@ -29,6 +29,7 @@ export interface QualityWatcherPayload {
   include_all_cases: boolean;
   complete?: boolean;
   shareableReport?: boolean;
+  suites?: number[]
   results: QualityWatcherResult[];
 }
 

@@ -6,6 +6,7 @@ import {
   QualityWatcherReportOptions,
 } from './qualitywatcher.interface';
 import fs from 'fs';
+import { getSuiteIds } from './util';
 
 export class QualityWatcherService {
   private readonly options: QualityWatcherReportOptions;
@@ -58,6 +59,7 @@ export class QualityWatcherService {
       include_all_cases: this.options.includeAllCases,
       results,
       shareableReport: this.options.generateShareableLink || false,
+      ...(results.length > 0 && { suites: getSuiteIds(results) })
     };
 
     try {
