@@ -59,7 +59,7 @@ export class QualityWatcherService {
       include_all_cases: this.options.includeAllCases,
       results,
       shareableReport: this.options.generateShareableLink || false,
-      ...(results.length > 0 && { suites: getSuiteIds(results) })
+      suites: Array.from(new Set(results.map(result => result?.suite_id).filter(Boolean))) as number[]
     };
 
     try {
