@@ -6,7 +6,6 @@ import {
   QualityWatcherReportOptions,
 } from './qualitywatcher.interface';
 import fs from 'fs';
-import { getSuiteIds } from './util';
 
 export class QualityWatcherService {
   private readonly options: QualityWatcherReportOptions;
